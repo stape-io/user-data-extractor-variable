@@ -1,4 +1,6 @@
-homepage: "https://stape.io/"
+homepage: 'https://stape.io/'
 versions:
+  - sha: 681dc649a4dcc4a7cc735cd3f10567bdbc926d51
+    changeNotes: Add tests and code refactor.
   - sha: e775ea87dd9d958bcccfc76c63b3d4281a164bda
     changeNotes: Initial release.

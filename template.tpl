@@ -51,7 +51,7 @@ ___TEMPLATE_PARAMETERS___
       },
       {
         "value": "city",
-        "displayValue": "street"
+        "displayValue": "city"
       },
       {
         "value": "postal_code",
@@ -74,14 +74,23 @@ ___TEMPLATE_PARAMETERS___
 ___SANDBOXED_JS_FOR_SERVER___
 
 const getEventData = require('getEventData');
+
 const user_data = getEventData('user_data');
 
-if (user_data) {
-  if (data.type == 'email' || data.type == 'phone_number') return user_data[data.type] || undefined;
-  else if (user_data.address) return user_data.address[0][data.type] || undefined;
-}
+if (!user_data) return;
 
-return undefined;
+switch (data.type) {
+  case 'phone_number':
+    return user_data[data.type];
+  case 'email':
+    return user_data[data.type] || user_data.email_address;
+  default:
+    if (user_data.address) {
+      const userAddress = user_data.address[0] || user_data.address;
+      return userAddress[data.type];
+    }
+    return;
+}
 
 
 ___SERVER_PERMISSIONS___
@@ -125,11 +134,58 @@ ___SERVER_PERMISSIONS___
 
 ___TESTS___
 
-scenarios: []
+scenarios:
+- name: Should return the email address when selected
+  code: "mockData.type = 'email';\n\n['email', 'email_address'].forEach((emailParam)\
+    \ => {\n  const user_data = {\n    phone_number: expectedPhone,\n    address:\
+    \ expectedAddress\n  };\n  user_data[emailParam] = expectedEmail;\n  \n  mock('getEventData',\
+    \ (param) => {\n    if (param === 'user_data') return user_data;\n  });\n  \n\
+    \  const variableResult = runCode(mockData);\n  assertThat(variableResult).isEqualTo(expectedEmail);\n\
+    });\n\n"
+- name: Should return the phone number when selected
+  code: |-
+    mockData.type = 'phone_number';
+
+    mock('getEventData', (param) => {
+      if (param === 'user_data') {
+        return {
+          email: expectedEmail,
+          phone_number: expectedPhone,
+          address: expectedAddress
+        };
+      }
+    });
+
+    const variableResult = runCode(mockData);
+    assertThat(variableResult).isEqualTo(expectedPhone);
+- name: Should return the X (city, street etc) property of the address when selected
+  code: "[\n  expectedAddress,\n  { 0: expectedAddress },\n  [expectedAddress]\n].forEach((addressScenario)\
+    \ => {\n  ['first_name', 'last_name', 'street', 'city', 'postal_code', 'region',\
+    \ 'country'].forEach((type) => {\n    mockData.type = type;\n    mock('getEventData',\
+    \ (param) => {\n      if (param === 'user_data') {\n        return {\n       \
+    \   email: expectedEmail,\n          phone_number: expectedPhone,\n          address:\
+    \ addressScenario\n        };\n      }\n    });\n    \n    const variableResult\
+    \ = runCode(mockData);\n    // Although it outputs only the last result in the\
+    \ Preview pane (>), it runs through all values (just put a logToConsole to see).\n\
+    \    assertThat(variableResult).isEqualTo(expectedAddress[type]);\n  });\n});\n\
+    \n"
+setup: |+
+  const mockData = {};
+
+  const expectedEmail = 'test@example.com';
+  const expectedPhone = '123456';
+  const expectedAddress = {
+    first_name: 'firstname',
+    last_name: 'lastname',
+    street: 'street',
+    city: 'city',
+    postal_code: 'postalcode',
+    region: 'region',
+    country: 'country'
+  };
 
 
 ___NOTES___
 
 Created on 4.7.2023 13.04.05
-
 
