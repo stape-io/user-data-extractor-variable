@@ -16,3 +16,6 @@ It extracts the values from the `user_data` common Event Data parameter and is e
 Initial development was done by [Lars Friis](https://www.linkedin.com/in/lars-friis/).
 
 The **User Data Extractor Variable** for GTM Server is developed and maintained by [Stape Team](https://stape.io/) under the Apache 2.0 license.
+
+### GTM Gallery Status
+🟢 [Listed](https://tagmanager.google.com/gallery/#/owners/stape-io/templates/user-data-extractor-variable)
